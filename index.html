@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Join the early list</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0A0A0A;
+    --accent: #1A5DFF;
+    --muted: #6b6b6b;
+    --bg: #FAF7F0;
+    --border: #d8d4cb;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    line-height: 1.5;
+  }
+  .card {
+    max-width: 480px;
+    width: 100%;
+  }
+  h1 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem;
+  }
+  p.lede {
+    color: var(--muted);
+    margin: 0 0 1.5rem;
+    font-size: 1rem;
+  }
+  form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  input[type="email"] {
+    flex: 1 1 200px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    background: white;
+    color: var(--ink);
+  }
+  input[type="email"]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+  button {
+    padding: 0.7rem 1.3rem;
+    background: var(--ink);
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: var(--accent);
+    min-height: 1.5em;
+  }
+  footer {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Join the early list</h1>
+    <p class="lede">Drop your email and you'll hear from us when there's something worth showing.</p>
+    <form id="signup">
+      <input name="email" type="email" required placeholder="your email" autocomplete="email">
+      <button type="submit">Join</button>
+    </form>
+    <div id="status" role="status" aria-live="polite"></div>
+    <footer>
+      Demo form for the Founding Federation cohort. Submissions land in a Google Sheet via a Google Apps Script endpoint. See the <a href="https://github.com/vrnico/signup-form-test">repo</a>.
+    </footer>
+  </div>
+
+<script>
+  // -------------------------------------------------------------------------
+  // PASTE YOUR APPS SCRIPT WEB APP URL BELOW.
+  // Get this from: Sheet → Tools → Apps Script → Deploy → New deployment
+  // → Type: Web app → Access: Anyone → Deploy → copy the URL.
+  // -------------------------------------------------------------------------
+  const ENDPOINT = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
+  const form = document.getElementById('signup');
+  const status = document.getElementById('status');
+  const button = form.querySelector('button');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (ENDPOINT.startsWith('PASTE_')) {
+      status.textContent = 'edit index.html and paste your Apps Script URL into ENDPOINT.';
+      return;
+    }
+    const email = form.email.value.trim();
+    if (!email) return;
+    button.disabled = true;
+    status.textContent = 'sending...';
+    try {
+      // `no-cors` dodges the preflight; Apps Script still receives the body.
+      // We can't read the response, but the row lands in the Sheet.
+      await fetch(ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+          email,
+          source: location.hostname || 'local'
+        })
+      });
+      status.textContent = "thanks! we'll be in touch.";
+      form.reset();
+    } catch (err) {
+      status.textContent = 'something went wrong, try again?';
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
